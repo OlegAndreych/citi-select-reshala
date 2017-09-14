@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/citi-knapsack.iml" filepath="$PROJECT_DIR$/.idea/modules/citi-knapsack.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/citi-knapsack_main.iml" filepath="$PROJECT_DIR$/.idea/modules/citi-knapsack_main.iml" group="citi-knapsack" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/citi-knapsack_test.iml" filepath="$PROJECT_DIR$/.idea/modules/citi-knapsack_test.iml" group="citi-knapsack" />
+    </modules>
+  </component>
+</project>
