@@ -2,25 +2,20 @@ package org.andreych.citi.knapsack
 
 import org.andreych.citi.knapsack.domain.Row
 import org.chocosolver.solver.Model
-import org.chocosolver.solver.ParallelPortfolio
 import org.chocosolver.solver.Solution
 import org.chocosolver.solver.search.loop.monitors.IMonitorSolution
 import org.chocosolver.solver.variables.IntVar
 
 class Solver(rows: Collection<Row>, limit: Int) {
-    private val portfolio = ParallelPortfolio()
     private val modelMap = HashMap<Model, MappingResult>(6)
 
     init {
-        for (i in 0..5) {
-            val (model, mappingResult) = makeModel(rows, limit, i)
-            portfolio.addModel(model)
-            modelMap.put(model, mappingResult)
-        }
+        val (model, mappingResult) = makeModel(rows, limit)
+        modelMap.put(model, mappingResult)
     }
 
-    private fun makeModel(rows: Collection<Row>, limit: Int, i: Int): Pair<Model, MappingResult> {
-        val model = Model("Citi Cashback Pro knapsack model $i")
+    private fun makeModel(rows: Collection<Row>, limit: Int): Pair<Model, MappingResult> {
+        val model = Model("Citi Cashback Pro knapsack model")
 
         val occurrencesList = ArrayList<IntVar>(rows.size)
         val weightSum = model.intVar("Weight sum", 0, limit)
@@ -46,12 +41,13 @@ class Solver(rows: Collection<Row>, limit: Int) {
 
     fun solve() {
 
-        while (portfolio.solve()) {
+        val (model, mappingResult) = modelMap.entries.first()
+
+        val solver = model.solver
+        while (solver.solve()) {
         }
 
-        val model = portfolio.bestModel
-
-        val (occurrencesList, weightSum, energySum, solution) = modelMap[model] ?: throw RuntimeException("Somehow model ${model.name} has not been found.")
+        val (occurrencesList, weightSum, energySum, solution) = mappingResult
 
         println("Cost sum is ${solution.getIntVal(weightSum)}")
         println("Value sum is ${solution.getIntVal(energySum)}")
