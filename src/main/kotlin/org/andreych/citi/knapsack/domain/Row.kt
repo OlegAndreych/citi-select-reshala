@@ -9,6 +9,8 @@ import java.time.format.DateTimeFormatter
  */
 data class Row(val date: LocalDate, val name: String, val cost: Int, val value: Int) {
 
+    val ratio = BigDecimal(value).setScale(2) / BigDecimal(cost)
+
     companion object {
 
         private val PATTERN: Regex = Regex("^(?<date>\\d{2}/\\d{2}/\\d{4})(?<name>.*?)(?<cost>[\\d,]*?\\.\\d{2})\\s*?(?<value>[\\d,]*?\\.\\d{2}) \\w{3}\$")

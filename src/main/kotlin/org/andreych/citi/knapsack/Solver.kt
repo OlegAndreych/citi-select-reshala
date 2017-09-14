@@ -6,7 +6,7 @@ import org.chocosolver.solver.Solution
 import org.chocosolver.solver.search.loop.monitors.IMonitorSolution
 import org.chocosolver.solver.variables.IntVar
 
-class Solver(rows: Collection<Row>, limit: Int) {
+class Solver(rows: Map<Pair<Int, Int>, List<Row>>, limit: Int) {
     private val modelMap = HashMap<Model, MappingResult>(6)
 
     init {
@@ -14,27 +14,28 @@ class Solver(rows: Collection<Row>, limit: Int) {
         modelMap.put(model, mappingResult)
     }
 
-    private fun makeModel(rows: Collection<Row>, limit: Int): Pair<Model, MappingResult> {
+    private fun makeModel(groupedRows: Map<Pair<Int, Int>, List<Row>>, limit: Int): Pair<Model, MappingResult> {
         val model = Model("Citi Cashback Pro knapsack model")
 
-        val occurrencesList = ArrayList<IntVar>(rows.size)
+        val occurrencesList = ArrayList<IntVar>(groupedRows.size)
+        val weights = ArrayList<Int>(groupedRows.size)
+        val energies = ArrayList<Int>(groupedRows.size)
+
         val weightSum = model.intVar("Weight sum", 0, limit)
         val energySum = model.intVar("Energy sum", 0, 1_000_000_000)
 
-        val weights = ArrayList<Int>(rows.size)
-        val energies = ArrayList<Int>(rows.size)
-
-        for ((date, name, cost, value) in rows) {
-            occurrencesList.add(model.boolVar("[$date] [$name] [$value:$cost]"))
+        for ((_, rows) in groupedRows) {
+            val (_, _, cost, value) = rows.first()
+            occurrencesList.add(model.intVar("[$value:$cost]", 0, rows.size))
             weights.add(cost)
             energies.add(value)
         }
 
-        model.knapsack(occurrencesList.toTypedArray(), weightSum, energySum, weights.toIntArray(), energies.toIntArray()).post()
-        model.setObjective(true, energySum)
-
         val solution = Solution(model)
         model.solver.plugMonitor(IMonitorSolution { solution.record() })
+
+        model.knapsack(occurrencesList.toTypedArray(), weightSum, energySum, weights.toIntArray(), energies.toIntArray()).post()
+        model.setObjective(true, energySum)
 
         return Pair(model, MappingResult(occurrencesList, weightSum, energySum, solution))
     }
@@ -53,7 +54,8 @@ class Solver(rows: Collection<Row>, limit: Int) {
         println("Value sum is ${solution.getIntVal(energySum)}")
 
         occurrencesList.forEach { v ->
-            if (solution.getIntVal(v) == 1) println(v.name)
+            val amount = solution.getIntVal(v)
+            if (amount > 0) println("Recrord: ${v.name}, amount: $amount")
         }
     }
 }

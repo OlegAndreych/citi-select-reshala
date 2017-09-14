@@ -21,9 +21,19 @@ fun main(args: Array<String>) {
     val rows = Files.newBufferedReader(path).useLines { it.drop(1).map { Row.parse(it) }.toList() }
     println("Rows has been parsed")
 
+    val maxRatio = rows.map { it.ratio }.max() ?: BigDecimal.ZERO
+    println("Max ratio is $maxRatio")
+
+    println("Amount of rows before filtering is ${rows.size}")
+    val filteredRows: List<Row> = rows.filter { it.ratio >= maxRatio }
+    println("Amount of rows after filtering is ${filteredRows.size}")
+
+    val groupedRows = filteredRows.groupBy { Pair(it.value, it.cost) }
+    println("Amount of rows after grouping is ${groupedRows.size}")
+
     println("Solving started")
     val time = measureTimeMillis {
-        val solver = Solver(rows, limit)
+        val solver = Solver(groupedRows, limit)
         solver.solve()
     }
     println("Solution has been found in $time millis")
