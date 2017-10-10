@@ -19,15 +19,15 @@ data class Row(val date: LocalDate, val name: String, val cost: Int, val value: 
         fun parse(line: String): Row {
 
             val groups = Row.PATTERN.find(line)?.groups ?: throw IllegalArgumentException("Cannot parse line $line.")
-            val date = LocalDate.parse(groups["date"]?.value, DateTimeFormatter.ofPattern(DATE_PATTERN))
-            val name = groups["name"]!!.value
-            val cost = matchToInt(groups, "cost")
-            val value = matchToInt(groups, "value")
+            val date = LocalDate.parse(groups[1]?.value, DateTimeFormatter.ofPattern(DATE_PATTERN))
+            val name = groups[2]!!.value
+            val cost = matchToInt(groups, 3)
+            val value = matchToInt(groups, 4)
 
             return Row(date, name, cost, value)
         }
 
-        private fun matchToInt(groups: MatchGroupCollection, s: String): Int {
+        private fun matchToInt(groups: MatchGroupCollection, s: Int): Int {
             val value = groups[s]!!.value.replace(",", "")
             return BigDecimal(value).movePointRight(2).toInt()
         }
