@@ -2,7 +2,7 @@ group 'org.andreych'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '1.1.51'
+    ext.kotlin_version = '1.2.10'
 
     repositories {
         mavenCentral()
@@ -23,7 +23,7 @@ repositories {
 
 dependencies {
     compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    compile "org.choco-solver:choco-solver:4.0.4"
+    compile "org.choco-solver:choco-solver:4.0.6"
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
 
