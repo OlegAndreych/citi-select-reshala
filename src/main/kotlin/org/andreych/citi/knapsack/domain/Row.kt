@@ -13,9 +13,9 @@ data class Row(val date: LocalDate, val name: String, val cost: Int, val value: 
 
     companion object {
 
-        private val PATTERN: Regex = Regex("^(?<date>\\d{2}/\\d{2}/\\d{4})(?<name>.*?)(?<cost>[\\d,]*?\\.\\d{2})\\s*?(?<value>[\\d,]*?\\.\\d{2}) \\w{3}\$")
-        private val DATE_PATTERN = "dd/MM/yyyy"
-        private val COST_MULTIPLICATOR = BigDecimal("4.3")
+        private val PATTERN: Regex =
+            Regex("^(?<date>\\d{2}/\\d{2}/\\d{4})(?<name>.*?)(?<cost>[\\d,]*?\\.\\d{2})\\s*?(?<value>[\\d,]*?\\.\\d{2}) \\w{3}\$")
+        private const val DATE_PATTERN = "dd/MM/yyyy"
 
         fun parse(line: String): Row {
 
@@ -29,8 +29,8 @@ data class Row(val date: LocalDate, val name: String, val cost: Int, val value: 
         }
 
         private fun calculateCost(groups: MatchGroupCollection): Int {
-            val value = groups[4]!!.value.replace(",", "")
-            return BigDecimal(value).multiply(COST_MULTIPLICATOR).movePointRight(2).toInt()
+            val value = groups[3]!!.value.replace(",", "")
+            return BigDecimal(value).movePointRight(2).toInt()
         }
 
         private fun normalizeValue(groups: MatchGroupCollection): Int {

@@ -21,7 +21,10 @@ fun main(args: Array<String>) {
     val rows = Files.newBufferedReader(path).useLines { it.drop(1).map { Row.parse(it) }.toList() }
     println("Rows has been parsed")
 
-    val maxRatio = rows.map { it.ratio }.max() ?: BigDecimal.ZERO
+    val distinctRatios = rows.map { it.ratio }.distinct()
+    println("Available ratios are: $distinctRatios")
+
+    val maxRatio = distinctRatios.max() ?: BigDecimal.ZERO
     println("Max ratio is $maxRatio")
 
     println("Amount of rows before filtering is ${rows.size}")

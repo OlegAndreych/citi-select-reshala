@@ -2,16 +2,25 @@ package org.andreych.citi.knapsack
 
 import org.andreych.citi.knapsack.domain.Row
 import org.chocosolver.solver.Model
+import org.chocosolver.solver.ParallelPortfolio
 import org.chocosolver.solver.Solution
 import org.chocosolver.solver.search.loop.monitors.IMonitorSolution
 import org.chocosolver.solver.variables.IntVar
 
 class Solver(rows: Map<Pair<Int, Int>, List<Row>>, limit: Int) {
-    private val modelMap = HashMap<Model, MappingResult>(6)
+
+    companion object {
+        const val MODELS_AMOUNT = 8
+    }
+
+    private val modelMap = HashMap<Model, MappingResult>(8)
 
     init {
+
         val (model, mappingResult) = makeModel(rows, limit)
-        modelMap.put(model, mappingResult)
+        for (i in 1..MODELS_AMOUNT){
+            modelMap[model] = mappingResult
+        }
     }
 
     private fun makeModel(groupedRows: Map<Pair<Int, Int>, List<Row>>, limit: Int): Pair<Model, MappingResult> {
@@ -22,7 +31,7 @@ class Solver(rows: Map<Pair<Int, Int>, List<Row>>, limit: Int) {
         val energies = ArrayList<Int>(groupedRows.size)
 
         val weightSum = model.intVar("Weight sum", 0, limit)
-        val energySum = model.intVar("Energy sum", 0, 1_000_000_000)
+        val energySum = model.intVar("Energy sum", 0, 1_000_000)
 
         for ((_, rows) in groupedRows) {
             val (_, _, cost, value) = rows.first()
@@ -31,10 +40,16 @@ class Solver(rows: Map<Pair<Int, Int>, List<Row>>, limit: Int) {
             energies.add(value)
         }
 
-        val solution = Solution(model)
-        model.solver.plugMonitor(IMonitorSolution { solution.record() })
+        val weightsArray = weights.toIntArray()
+        val energiesArray = energies.toIntArray()
 
-        model.knapsack(occurrencesList.toTypedArray(), weightSum, energySum, weights.toIntArray(), energies.toIntArray()).post()
+        val solution = Solution(model)
+        val solver = model.solver
+        solver.plugMonitor(IMonitorSolution { solution.record() })
+        solver.setDBTLearning(true, false)
+        solver.limitTime(60000L)
+
+        model.knapsack(occurrencesList.toTypedArray(), weightSum, energySum, weightsArray, energiesArray).post()
         model.setObjective(true, energySum)
 
         return Pair(model, MappingResult(occurrencesList, weightSum, energySum, solution))
@@ -42,12 +57,19 @@ class Solver(rows: Map<Pair<Int, Int>, List<Row>>, limit: Int) {
 
     fun solve() {
 
-        val (model, mappingResult) = modelMap.entries.first()
+        val portfolio = ParallelPortfolio()
+        modelMap.entries.forEach { portfolio.addModel(it.key) }
 
-        val solver = model.solver
-        while (solver.solve()) {
+        while (portfolio.solve()) {
+            val bestModel = portfolio.bestModel
+            val solver = bestModel.solver
+            solver.printStatistics()
+            val mappingResult = modelMap[bestModel]
+            mappingResult?.let { printResult(it) }
         }
+    }
 
+    private fun printResult(mappingResult: MappingResult) {
         val (occurrencesList, weightSum, energySum, solution) = mappingResult
 
         println("Cost sum is ${solution.getIntVal(weightSum)}")
@@ -55,9 +77,14 @@ class Solver(rows: Map<Pair<Int, Int>, List<Row>>, limit: Int) {
 
         occurrencesList.forEach { v ->
             val amount = solution.getIntVal(v)
-            if (amount > 0) println("Recrord: ${v.name}, amount: $amount")
+            if (amount > 0) println("Record: ${v.name}, amount: $amount")
         }
     }
 }
 
-private data class MappingResult(val occurrencesList: ArrayList<IntVar>, val weightSum: IntVar, val energySum: IntVar, val solution: Solution)
+private data class MappingResult(
+    val occurrencesList: ArrayList<IntVar>,
+    val weightSum: IntVar,
+    val energySum: IntVar,
+    val solution: Solution
+)

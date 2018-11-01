@@ -5,8 +5,10 @@
       <profile default="true" name="Default" enabled="true" />
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="citi-knapsack_main" target="1.9" />
-      <module name="citi-knapsack_test" target="1.9" />
+      <module name="citi-knapsack_main" target="11" />
+      <module name="citi-knapsack_test" target="11" />
+      <module name="org.andreych.citi-knapsack.main" target="11" />
+      <module name="org.andreych.citi-knapsack.test" target="11" />
     </bytecodeTargetLevel>
   </component>
 </project>
